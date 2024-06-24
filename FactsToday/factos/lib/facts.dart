@@ -1,5 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:factos/main.dart';
+import 'package:intl/intl.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -13,7 +15,6 @@ class App extends StatelessWidget {
     );
   }
 }
-
 class factos extends StatefulWidget {
   const factos({super.key});
 
@@ -22,193 +23,169 @@ class factos extends StatefulWidget {
 }
 
 class _factosState extends State<factos> {
-  final List<Map<String, String>> factsList = const [
+  final List<Map> dummy = const [
     {
-      'name': 'Ankit Khanal',
-      'fact': 'I am learning flutter:)',
-      'date': '2081/03/02',
-    },
-    {
-      'name': 'Prajina Adhikari',
-      'fact': 'I am learning flutter:)',
-      'date': '2081/03/02',
-    },
-    {
-      'name': 'Sujan Puri',
-      'fact': 'I am learning flutter:)',
-      'date': '2081/03/02',
-    },
-    {
-      'name': 'Hemanta Khatiwada',
-      'fact': 'I am learning flutter:)',
-      'date': '2081/03/02',
-    },
-    {
-      'name': 'Hridayadev Dhungana',
-      'fact': 'I am learning flutter:)',
-      'date': '2081/03/02',
-    },
-    {
-      'name': 'Nishan  Gautam',
-      'fact': 'I am learning flutter:)',
-      'date': '2081/03/02',
-    },
-    {
-      'name': 'Anil Thapa',
-      'fact': 'I am learning flutter:)',
-      'date': '2081/03/02',
+      'name': 'Loading......',
+      'fact': 'Loading......',
+      'date': 'Loading......',
     }
   ];
 
-  final List<Map<String, String>> commentsList = [
-    {
-      'comment': 'This is comment 1',
-    },
-    {
-      'comment': 'This is comment 2',
-    },
-    {
-      'comment': 'This is comment 3',
-    },
-    {
-      'comment': 'This is comment 4',
-    },
-    {
-      'comment': 'This is comment 5',
-    },
-  ];
-
-  bool hasUserLiked = false;
+  List<Map> data = [];
   final ScrollController _controller = ScrollController();
 
-  int likeCount = 0;
-  void increaseLikes() {
-    if (hasUserLiked) {
-      setState(() {
-        likeCount--;
-      });
-    } else {
-      setState(() {
-        likeCount++;
-      });
-    }
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
+  void fetchFactsFromFirestore() async {
+    QuerySnapshot querySnapshot = await firestore.collection('txtData').get();
+
     setState(() {
-      hasUserLiked = !hasUserLiked;
+      data = querySnapshot.docs.map((doc) {
+        return {
+          'name': doc['username'],
+          'fact': doc['txtVal'],
+          'date': doc['timeVal'],
+        };
+      }).toList();
     });
   }
 
-  var a = false;
-  void ntg() {
-    a = true;
+  String getCurrentDate() {
+    final DateTime now = DateTime.now();
+    final DateFormat formatter = DateFormat('MM/dd/yyyy');
+    return formatter.format(now);
   }
 
-  Future<void> _showCommentsDialog() async {
+  TextEditingController controllerName = TextEditingController(text: '');
+  TextEditingController controllerFact = TextEditingController(text: '');
+
+  void addData() async {
+    String name = controllerName.text;
+    String fact = controllerFact.text;
+
+    if (name.isNotEmpty && fact.isNotEmpty) {
+      try {
+        await FirebaseFirestore.instance.collection('txtData').add({
+          'username': name,
+          'txtVal': fact,
+          'timeVal': getCurrentDate(),
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Data added successfully!')),
+        );
+        controllerFact.clear();
+        controllerName.clear();
+        Navigator.of(context).pop();
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to add data: $e')),
+        );
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill in all fields')),
+      );
+    }
+  }
+
+  Future<void> inputForm() async {
     return showDialog<void>(
       context: context,
-      barrierDismissible: true, // user can tap outside to dismiss
+      barrierDismissible: true, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
           backgroundColor: const Color.fromARGB(255, 24, 25, 26),
-          title: const Text('Comments',
-              style: TextStyle(fontSize: 20, color: Colors.white),
-              textAlign: TextAlign.center),
-          content: SizedBox(
-            height: 250,
-            width: double.maxFinite,
-            child: ListView.builder(
-              itemCount: commentsList.length,
-              itemBuilder: (context, index) {
-                return Column(children: [
-                  const SizedBox(
-                    height: 5,
+          title: const Text(
+            'Share a new fact',
+            style: TextStyle(fontSize: 18, color: Colors.white),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              children: [
+                Container(
+                  decoration: const BoxDecoration(
+                    borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(10),
+                        topRight: Radius.circular(10)),
+                    color: Color.fromARGB(255, 36, 37, 38),
                   ),
-                  Container(
-                    decoration: BoxDecoration(
-                        border: Border.all(
-                            color: const Color.fromARGB(255, 49, 51, 52),
-                            width: 2),
-                        color: const Color.fromARGB(255, 36, 37, 38),
-                        borderRadius: BorderRadius.circular(10)),
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                    child: Row(
-                      children: [
-                        Row(
-                          children: [
-                            const SizedBox(
-                              width: 10,
-                            ),
-                            const CircleAvatar(
-                              radius: 20,
-                              backgroundImage: NetworkImage(
-                                'https://avatars.githubusercontent.com/u/134664758?v=4',
-                              ),
-                            ),
-                            const SizedBox(
-                              width: 20,
-                            ),
-                            Container(
-                              width: 200,
-                              child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      '${factsList[index]['name']}',
-                                      style: const TextStyle(
-                                          fontSize: 16,
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    const SizedBox(
-                                      height: 5,
-                                    ),
-                                    Text(
-                                      '${commentsList[index]['comment']!}',
-                                      style: const TextStyle(
-                                          fontSize: 14, color: Colors.white),
-                                    ),
-                                  ]),
-                            ),
-                            const SizedBox(
-                              width: 35,
-                            ),
-                            InkWell(
-                              onTap: increaseLikes,
-                              child: const Icon(
-                                Icons.thumb_up,
-                                color: Colors.grey,
-                              ),
-                            ),
-                            const SizedBox(
-                              width: 10,
-                            ),
-                            Text(
-                              '$likeCount',
-                              style: const TextStyle(color: Colors.white),
-                            ),
-                          ],
-                        ),
-                      ],
+                  child: TextField(
+                    autofocus: true,
+                    controller: controllerName,
+                    maxLines: null,
+                    cursorColor: Colors.white,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.grey[200]),
+                    decoration: const InputDecoration(
+                      hintText: 'Enter your name',
+                      hintStyle:
+                          TextStyle(color: Color.fromARGB(255, 105, 111, 116)),
                     ),
                   ),
-                  const SizedBox(
-                    height: 5,
+                ),
+                const SizedBox(
+                  height: 10,
+                ),
+                Container(
+                  decoration: const BoxDecoration(
+                    borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(10),
+                        topRight: Radius.circular(10)),
+                    color: Color.fromARGB(255, 36, 37, 38),
                   ),
-                ]);
-              },
+                  child: TextField(
+                    controller: controllerFact,
+                    minLines: 3, // Set this
+                    maxLines: 6, // and this
+                    keyboardType: TextInputType.multiline,
+                    cursorColor: Colors.white,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(
+                      hintText: 'Share a fact',
+                      hintStyle:
+                          TextStyle(color: Color.fromARGB(255, 105, 111, 116)),
+                    ),
+                  ),
+                ),
+                const SizedBox(
+                  height: 10,
+                ),
+                Container(
+                    width: 200,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                    child: TextButton(
+                        onPressed: () {
+                          addData();
+                        },
+                        child: const Text(
+                          'Share',
+                          style: TextStyle(fontSize: 18, color: Colors.black),
+                        ))),
+                const SizedBox(
+                  height: 10,
+                ),
+                Container(
+                    width: 200,
+                    decoration: BoxDecoration(
+                      color: Colors.red[800],
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                    child: TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                                  controllerFact.clear();
+                                  controllerName.clear();
+                        },
+                        child: const Text(
+                          'Cancel',
+                          style: TextStyle(fontSize: 18, color: Colors.white),
+                        )))
+              ],
             ),
           ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text(
-                'Close',
-                style: TextStyle(color: Colors.white),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
         );
       },
     );
@@ -229,35 +206,17 @@ class _factosState extends State<factos> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    fetchFactsFromFirestore();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 24, 25, 26),
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        actions: [
-          IconButton(
-            hoverColor: const Color.fromARGB(255, 49, 51, 52),
-            onPressed: () {},
-            icon: const Row(children: [
-              Icon(
-                Icons.login,
-                color: Colors.white,
-                size: 30,
-              ),
-              SizedBox(
-                width: 5,
-              ),
-              Text(
-                'Sign In',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 17,
-                ),
-              ),
-            ]),
-          ),
-          const SizedBox(width: 10)
-        ],
         title: InkWell(
           onTap: navigateHome,
           highlightColor: const Color.fromARGB(255, 68, 73, 75),
@@ -270,33 +229,58 @@ class _factosState extends State<factos> {
       ),
       body: ListView.builder(
         controller: _controller,
-        itemCount: factsList.length,
+        itemCount: data.isNotEmpty ? data.length : dummy.length,
         itemBuilder: (context, index) {
+          var item = data.isNotEmpty ? data[index] : dummy[index];
           return Column(
             children: [
               const SizedBox(height: 15),
               FactCard(
-                fact: factsList[index],
-                likeCount: likeCount,
-                onLikePressed: increaseLikes,
-                onCommentPressed: _showCommentsDialog,
+                fact: data.isNotEmpty
+                    ? {
+                        'name': item['name'],
+                        'fact': item['fact'],
+                        'date': item['date'].toString()
+                      }
+                    : item,
               ),
               const SizedBox(height: 5),
             ],
           );
         },
       ),
-      floatingActionButton: Container(
-        height: 50,
+      floatingActionButton: SizedBox(
+        height: 130,
         width: 50,
-        child: FloatingActionButton(
-          onPressed: scrollToTop,
-          backgroundColor: const Color.fromARGB(255, 49, 51, 52),
-          child: const Icon(
-            Icons.arrow_upward_sharp,
-            color: Colors.white,
-            size: 30,
-          ),
+        child: Column(
+          children: [
+            FloatingActionButton(
+              heroTag: 'add',
+              onPressed: null,
+              backgroundColor: const Color.fromARGB(255, 49, 51, 52),
+              child: IconButton(
+                onPressed: inputForm,
+                icon: const Icon(
+                  Icons.add,
+                  color: Colors.white,
+                  size: 30,
+                ),
+              ),
+            ),
+            const SizedBox(
+              height: 10,
+            ),
+            FloatingActionButton(
+              heroTag: 'gototop',
+              onPressed: scrollToTop,
+              backgroundColor: const Color.fromARGB(255, 49, 51, 52),
+              child: const Icon(
+                Icons.arrow_upward_sharp,
+                color: Colors.white,
+                size: 30,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -304,18 +288,11 @@ class _factosState extends State<factos> {
 }
 
 class FactCard extends StatelessWidget {
-  final Map<String, String> fact;
-  final int likeCount;
-  final VoidCallback onLikePressed;
-  final VoidCallback onCommentPressed;
-
+  final Map fact;
   const FactCard({
     required this.fact,
-    required this.likeCount,
-    required this.onLikePressed,
-    required this.onCommentPressed,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -342,9 +319,10 @@ class FactCard extends StatelessWidget {
               child: Row(
                 children: [
                   const CircleAvatar(
+                    backgroundColor: Color.fromARGB(255, 36, 37, 38),
                     radius: 20,
                     backgroundImage: NetworkImage(
-                      'https://avatars.githubusercontent.com/u/134664758?v=4',
+                      'https://factos.vercel.app/_next/image?url=%2Fdonkey.png&w=96&q=75',
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -373,29 +351,6 @@ class FactCard extends StatelessWidget {
                   height: 2,
                 ),
               ),
-            ),
-            Row(
-              children: [
-                IconButton(
-                  onPressed: onLikePressed,
-                  icon: const Icon(
-                    Icons.thumb_up,
-                    color: Colors.grey,
-                  ),
-                ),
-                Text(
-                  "$likeCount",
-                  style: const TextStyle(color: Colors.grey),
-                ),
-                const SizedBox(width: 10),
-                InkWell(
-                  onTap: onCommentPressed,
-                  child: const Icon(
-                    Icons.comment,
-                    color: Colors.grey,
-                  ),
-                ),
-              ],
             ),
           ],
         ),

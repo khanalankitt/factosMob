@@ -29,8 +29,23 @@
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
+
   <title>factos</title>
   <link rel="manifest" href="manifest.json">
+  <script defer src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
+  <script>
+    var firebaseConfig = {
+  apiKey: "AIzaSyDdfXDoyJVpSRRi-vhbXtx0WV_lqomT5Zc",
+  authDomain: "facts-today-e7fc3.firebaseapp.com",
+  projectId: "facts-today-e7fc3",
+  storageBucket: "facts-today-e7fc3.appspot.com",
+  messagingSenderId: "80172550906",
+  appId: "1:80172550906:web:078efa20f745a8f7dd9743",
+  measurementId: "G-7JE4N3HDGT"
+};
+    firebase.initializeApp(firebaseConfig);
+  </script>
 </head>
 <body>
   <script src="flutter_bootstrap.js" async></script>

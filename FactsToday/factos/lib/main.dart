@@ -1,9 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:factos/facts.dart';
+import 'package:firebase_core/firebase_core.dart';
 
-void main() {
+void main() async {
+  await Firebase.initializeApp(
+    options: const FirebaseOptions(
+    apiKey: "",
+    appId: "",
+    messagingSenderId: "",
+    projectId: "",
+  ));
   runApp(const MyApp());
 }
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -26,16 +35,16 @@ class Factos extends StatefulWidget {
 
 class _FactosState extends State<Factos> {
   void abc() {
-    Navigator.push(context,MaterialPageRoute(builder: (context){
-      return factos();
-    }) );
+    Navigator.push(context, MaterialPageRoute(builder: (context) {
+      return const factos();
+    }));
   }
 
   bool isHovered = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 38, 45, 58),
+      backgroundColor: const Color.fromARGB(255, 38, 45, 58),
       body: Container(
         decoration: const BoxDecoration(
           image: DecorationImage(
@@ -82,7 +91,9 @@ class _FactosState extends State<Factos> {
                     width: 200,
                     height: 37,
                     decoration: BoxDecoration(
-                        color: isHovered ? const Color.fromARGB(255, 38, 45, 58) : Colors.white,
+                        color: isHovered
+                            ? const Color.fromARGB(255, 38, 45, 58)
+                            : Colors.white,
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: Colors.white, width: 2)),
                     child: Center(
@@ -90,7 +101,7 @@ class _FactosState extends State<Factos> {
                         'Start Sharing',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                            color:isHovered? Colors.white:Colors.black,
+                            color: isHovered ? Colors.white : Colors.black,
                             fontSize: 18,
                             fontWeight: FontWeight.w600),
                       ),
